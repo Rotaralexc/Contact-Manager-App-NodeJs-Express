@@ -24,7 +24,8 @@ const createContact = asyncHandler(async (req, res) => {
     const contacts = await Contact.create({
         name,
         email,
-        phone
+        phone,
+        user_id: req.user.id,
     })
     res.status(201).json(contacts);
 });
@@ -52,6 +53,10 @@ const updateContact = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error("Contact not found");
     }
+    if(contact.user_id.toString() !== req.user_id){
+        res.status(403);
+        throw new Error("User dont have permission to update other user contacts")
+    }
 
     const updateContact = await Contact.findByIdAndUpdate(
         req.params.id,
@@ -71,6 +76,10 @@ const deleteContact = asyncHandler(async (req, res) => {
     if(!contact){
         res.status(404);
         throw new Error("Contact not found");
+    }
+    if(contact.user_id.toString() !== req.user_id){
+        res.status(403);
+        throw new Error("User dont have permission to update other user contacts")
     }
 
     await contact.deleteOne();
